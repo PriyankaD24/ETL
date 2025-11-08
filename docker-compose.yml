@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow:
+    build: .
+    container_name: airflow
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=kNvhq47PRe_9ym4tC9r52eqnCAmhYHqmhF_GzZNhQh0=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - KAGGLE_CONFIG_DIR=/home/airflow/.kaggle
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./jobs:/opt/airflow/jobs
+      - ./data:/opt/airflow/data
+      - ./kaggle_airflow/kaggle.json:/home/airflow/.kaggle/kaggle.json:rw
+    command: >
+      bash -c "
+      airflow db migrate &&
+      airflow connections create-default-connections &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
+      airflow webserver & airflow scheduler
+      "
+
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # WebUI
+    command: server /data --address ":9000" --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:
