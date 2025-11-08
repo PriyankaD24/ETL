@@ -25,6 +25,3 @@ It extracts data from multiple sources, transforms it for consistency, and loads
 | **Databases** | MongoDB, SQL Server / SQLite *(local MinIO bucket used as database)* |
 | **Libraries & Tools** | Pandas, JSON, Logging |
 
----
-
-## 📁 Project Structure
